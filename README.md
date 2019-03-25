@@ -73,8 +73,10 @@ Results:    -v) verbosity is set to it most verbose setting of 2
 
 ### Plot Lable
 
+```
 Test # - Test type [1 or 2]
 Test # - Test type [1 or 2] & Most neighbors [1 or 2]: [Correct or Incorrect]
+```
 
 ## License
 

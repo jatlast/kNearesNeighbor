@@ -40,7 +40,7 @@ args = parser.parse_args()
 # create a dictionary of list objects equal to the number of neighbors to test
 neighbors_dict = {}
 for i in range(1, args.neighbors + 1):
-    neighbors_dict[i] = {'index' : -1, 'distance' : 1000}
+    neighbors_dict[i] = {'index' : -1, 'distance' : 1000, 'type' : 0}
 
 if args.verbosity > 0:
     print(f"neighbors={args.neighbors} : len(neighbors_dict)={len(neighbors_dict)}")
@@ -63,30 +63,42 @@ def EuclideanDistanceBetweenTwoVectors(vOne, vTwo):
 
 # 2D scatterplot
 def Scatterplot2D(dTrainingData, vTestData, dNeighbors, dVariables):
-    # plot training data points
+    # plot training
     for i in range(0, len(dTrainingData)):
         if dTrainingData[i][2] == 1:
             plt.plot(dTrainingData[i][0], dTrainingData[i][1], dVariables['dColors'][1][0])
         else:
             plt.plot(dTrainingData[i][0], dTrainingData[i][1], dVariables['dColors'][2][0])
-    # plot test data points
-        if dTrainingData[i][2] == 1:
-            plt.plot(vTestData[0], vTestData[1], dVariables['dColors'][1][1])
-        else:
-            plt.plot(vTestData[0], vTestData[1], dVariables['dColors'][2][1])
+    # plot testing
+    if variables_dict['majority_type'] == 1 or (vTestData[2] == 1 and variables_dict['majority_type'] == 0):
+        plt.plot(vTestData[0], vTestData[1], dVariables['dColors'][1][1])
+    else:
+        plt.plot(vTestData[0], vTestData[1], dVariables['dColors'][2][1])
+    # if plotting neighbors
+    if dNeighbors[1]['index'] >= 0:
+        # plot neighbors
+        for i in range(1, len(dNeighbors) + 1):
+            if dTrainingData[dNeighbors[i]['index']][2] == 1:
+                plt.plot(dTrainingData[dNeighbors[i]['index']][0], dTrainingData[dNeighbors[i]['index']][1], dVariables['dColors'][3][0])
+            else:
+                plt.plot(dTrainingData[dNeighbors[i]['index']][0], dTrainingData[dNeighbors[i]['index']][1], dVariables['dColors'][3][1])
+
     plt.title(dVariables['plot_title'])
     plt.xlabel('x')
     plt.ylabel('y')
     plt.show()
 
+# variables that are useful to pass around
 variables_dict = {
     'training_file' : "./data/homework_classify_train_2D.dat"
     , 'testing_file' : "./data/homework_classify_test_2D.dat"
     , 'plot_title' : 'Default Title'
+    , 'majority_type' : 0
+    , 'classification' : 'UNK'
     , 'dColors' : { # plotting shapes and colors
-        1 : ['k.', 'bo']    # black . data and blue o mean
-        , 2 : ['g+', 'rP']  # green + data and red "filled +" mean
-        , 3 : ['cx', 'mX']  # cyan x data and magenta "filled x" mean
+        1 : ['k.', 'ko']    # black . data and blue o mean
+        , 2 : ['g.', 'go']  # green + data and red "filled +" mean
+        , 3 : ['ks', 'gs']  # cyan x data and magenta "filled x" mean
     }
 }
 
@@ -112,19 +124,46 @@ def ReadFileDataIntoDictOfLists(sFileName, dTraingDict):
 
 # Populate the k-nearest neighbors by comparing all training data with test data point
 def PopulateNearestNeighborsDicOfIndexes(dNeighbors, dTrainingData, vTestData):
-    for td in range(0, len(dTrainingData)):
-        index_taken = False
-        for nn in range(1, len(dNeighbors) + 1):
-            temp_vec = (dTrainingData[td][0], dTrainingData[td][1])
-            EuclideanDistance = EuclideanDistanceBetweenTwoVectors(vTestData, temp_vec)
-            if EuclideanDistance < dNeighbors[nn]['distance'] and not index_taken:
-                for nn2 in range(1, len(dNeighbors) + 1):
-                    if dNeighbors[nn2]['index'] == td:
-                        index_taken = True
-                        break
-                    else:
-                        dNeighbors[nn]['distance'] = EuclideanDistance
-                        dNeighbors[nn]['index'] = td
+    distances = []  # for debugging only (store then sort all distances for comparison to the chosen distances)
+    test_2d_vec = (vTestData[0], vTestData[1]) # does not include the "type" column
+    # Loop through the training set to find the least distance(s)
+    for i in range(0, len(dTrainingData)):
+        train_2d_vec = (dTrainingData[i][0], dTrainingData[i][1]) # does not include the "type" column
+        EuclideanDistance = EuclideanDistanceBetweenTwoVectors(test_2d_vec, train_2d_vec)
+        distances.append(EuclideanDistance) # for debugging only
+        neighbor_max_index = -1
+        neighbor_max_value = -1
+        # Loop through the neighbors dict so the maximum stored is always replaced first
+        for j in range(1, len(dNeighbors) + 1):
+            if dNeighbors[j]['distance'] > neighbor_max_value:
+                neighbor_max_value = dNeighbors[j]['distance']
+                neighbor_max_index = j
+        # save the newest least distance over the greatest existing neighbor distance
+        if EuclideanDistance < neighbor_max_value:
+            dNeighbors[neighbor_max_index]['distance'] = EuclideanDistance
+            dNeighbors[neighbor_max_index]['index'] = i
+            dNeighbors[neighbor_max_index]['type'] = dTrainingData[i][2]
+
+    # debugging: print the least distances out of all distances calculated
+    if args.verbosity > 1:
+        distances.sort()
+        print("least distances:")
+        for i in range(0, len(dNeighbors)):
+            print(f"min{i}:({distances[i]}) \t& neighbors:({dNeighbors[i+1]['distance']})")
+
+# Return the "type" value (1 or 2)
+def GetNearestNeighborMajorityType(dNeighbors):
+    type_1_count = 0
+    type_2_count = 0
+    for i in range(1, len(dNeighbors) + 1):
+        if dNeighbors[i]['type'] == 1:
+            type_1_count += 1
+        elif dNeighbors[i]['type'] == 2:
+            type_2_count += 1
+    if type_1_count > type_2_count:
+        return 1
+    else:
+        return 2
 
 # Load the training data
 training_dict = {}
@@ -142,18 +181,36 @@ if args.verbosity > 1:
             break
         else:
             print(f"\t{i} {training_dict[i]}")
-    print("The first 2 testing samples:")
+    print("The testing samples:")
     for i in range(0, len(testing_dict)):
-        if i > 1:
-            break
-        else:
-            print(f"\t{i} {testing_dict[i]}")
+        print(f"\t{i} {testing_dict[i]}")
 
-test_vect = (testing_dict[1][0], testing_dict[1][1])
-# create the plot graph
-variables_dict['plot_title'] = "Test variable is type {}".format(testing_dict[1][2])
-#Scatterplot2D(training_dict, test_vect, neighbors_dict, variables_dict)
+# loop through all testing data
+for i in range(0, len(testing_dict)):
+    # create the test vector to pass around
+    test_vec = (testing_dict[i][0], testing_dict[i][1], testing_dict[i][2])
 
-PopulateNearestNeighborsDicOfIndexes(neighbors_dict, training_dict, test_vect)
+    # create the plot graph
+    variables_dict['plot_title'] = "{} - Test type {}".format(i+1, testing_dict[i][2])
+    Scatterplot2D(training_dict, test_vec, neighbors_dict, variables_dict)
 
-print(f"neighbors_dict: {neighbors_dict}")
+    # get the k-nearest neighbors
+    PopulateNearestNeighborsDicOfIndexes(neighbors_dict, training_dict, test_vec)
+
+    # get the k-nearest neighbors' majority type
+    variables_dict['majority_type'] = GetNearestNeighborMajorityType(neighbors_dict)
+
+    # plot the chosen neighbors and the majority type of the current test vector
+    if testing_dict[i][2] == variables_dict['majority_type']:
+        variables_dict['classification'] = 'Correct'
+    else:
+        variables_dict['classification'] = 'Incorrect'
+    variables_dict['plot_title'] = "{} - Test type {} & Most neighbors {}: {}".format(i+1, testing_dict[i][2], variables_dict['majority_type'], variables_dict['classification'])
+    Scatterplot2D(training_dict, test_vec, neighbors_dict, variables_dict)
+
+    # reset variables
+    variables_dict['majority_type'] = 0
+    variables_dict['classification'] = 'UNK'
+    for i in range(1, args.neighbors + 1):
+        neighbors_dict[i] = {'index' : -1, 'distance' : 1000, 'type' : 0}
+

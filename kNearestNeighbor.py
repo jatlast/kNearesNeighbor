@@ -31,7 +31,7 @@ import re
 
 # allow command line options
 import argparse
-parser = argparse.ArgumentParser(description="Perform k-nearest neighbor classification on 2-dimensional data provided. (Note: 2D file includes 3 columns: x, y, classification")
+parser = argparse.ArgumentParser(description="Perform k-nearest neighbor classification on 2-dimensional data provided. (Note: 2D files include 3 columns: x, y, class)")
 #parser.add_argument("-f", "--filename", default="./data/homework_classify_train_2D.dat", help="file name (and path if not in . dir)")
 parser.add_argument("-n", "--neighbors", type=int, choices=[1, 3], default=1, help="number of nearest neighbors to use")
 parser.add_argument("-v", "--verbosity", type=int, choices=[0, 1, 2], default=0, help="increase output verbosity")

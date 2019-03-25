@@ -18,13 +18,11 @@ Assignment Homework 7: Due: 03/26/2019 5:59 PM
 ```
 ## False Starts
 
-1) 
-2) 
+1) I was not replacing the max nearest neighbor when collecting the k-nearest neighbors.
 
 ## Final Solutions
 
-1) 
-2)
+1) Created local variables to ensure the largest nearest neighbor was always the first to be replaced
 
 ## Chosen Technologies
 
@@ -58,7 +56,7 @@ kNearestNeighbor should run in any Python 3.6+ environment
 usage: kNearestNeighbor.py [-h] [-n {1,3}] [-v {0,1,2}]
 
 Perform k-nearest neighbor classification on 2-dimensional data provided.
-(Note: 2D file includes 3 columns: x, y, classification)
+(Note: 2D files include 3 columns: x, y, class)
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -75,11 +73,8 @@ Results:    -v) verbosity is set to it most verbose setting of 2
 
 ### Plot Lable
 
-Scatter Plot (0.90 > 0.20)
-```
-0.90 = maximum mean difference last calculated between the specified number of clusters
-0.20 = mean difference that must be obtained before exiting the while loop
-```
+Test # - Test type [1 or 2]
+Test # - Test type [1 or 2] & Most neighbors [1 or 2]: [Correct or Incorrect]
 
 ## License
 

@@ -29,7 +29,7 @@ Assignment Homework 7: Due: 03/26/2019 5:59 PM
 ## Chosen Technologies
 
 Motivation: Become more familiar with the following.
-1) Artificial Intelligence supervised training algorithms for prediction
+1) Artificial Intelligence supervised training algorithms for classification and prediction
 2) Python's numpy & matplotlib.pyplot libraries for plot visualizations
 3) Developing with Python 3.7 in Windows environment
 4) IDE - Visual Studio Code
@@ -57,7 +57,7 @@ kNearestNeighbor should run in any Python 3.6+ environment
 --------------------------------------------------------------------
 usage: kNearestNeighbor.py [-h] [-n {1,3}] [-v {0,1,2}]
 
-perform the k-nearest neighbor classifier on the 2-dimensional data
+Perform k-nearest neighbor classification on 2-dimensional data provided.
 (Note: 2D file includes 3 columns: x, y, classification)
 
 optional arguments:
